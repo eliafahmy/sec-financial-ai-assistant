@@ -1,112 +1,130 @@
 """
 app_common.py
 ==============
-وحدة مشتركة بين كل صفحات التطبيق (streamlit_app.py وpages/*): التصميم
-(CSS)، نصوص الترجمة (عربي/إنجليزي)، وإعداد الحالة العامة للجلسة.
-
-اتجاه التصميم: واجهة نظيفة واحترافية بروح Apple/Microsoft - خطوط
-النظام الأصلية (SF Pro لأبل، Segoe UI لمايكروسوفت)، ألوان محايدة
-هادئة مع لمسة أزرق واحدة كعنصر مميز، بطاقات بحواف دائرية ناعمة،
-وبلا أي زخرفة زايدة عن الحاجة.
+وحدة مشتركة بين كل صفحات التطبيق: التصميم (CSS)، نصوص الترجمة، وإعداد
+الحالة العامة للجلسة (بما فيها المحادثات المتعددة).
 """
+
+import uuid
 
 import streamlit as st
 
 # ---------------------------------------------------------------
-# نصوص الترجمة
+# نصوص الترجمة (واجهة فقط - الأسئلة المقترحة إنجليزي دايمًا بمعزل عن اللغة)
 # ---------------------------------------------------------------
 STRINGS = {
     "ar": {
         "app_title": "مساعد SEC المالي",
         "app_tagline": "اسأل عن تقارير آبل ومايكروسوفت المالية الرسمية",
-        "nav_chat": "المحادثة",
         "nav_dashboard": "لوحة البيانات",
-        "nav_about": "عن المشروع",
         "new_chat": "محادثة جديدة",
+        "recent_chats": "المحادثات السابقة",
         "suggested_questions": "أسئلة مقترحة",
-        "language": "اللغة",
-        "theme": "المظهر",
-        "theme_light": "فاتح",
-        "theme_dark": "داكن",
         "show_sources": "عرض المصادر",
-        "hide_sources": "إخفاء المصادر",
         "source": "المصدر",
         "filed_on": "تاريخ التقديم",
         "section": "القسم",
         "empty_chat_title": "ابدأ بسؤال عن آبل أو مايكروسوفت",
         "empty_chat_subtitle": "الإجابات مبنية فقط على تقارير 10-K و10-Q الرسمية المقدمة لهيئة SEC",
+        "greeting": "أهلًا! أقدر أساعدك ازاي النهاردة؟",
         "thinking": "جاري البحث في التقارير...",
         "footer_credit": "بُني بواسطة",
-        "q1": "كام صافي ربح آبل في آخر ربع سنة؟",
-        "q2": "What was Microsoft's total revenue for fiscal year 2025?",
-        "q3": "قارن بين إيرادات آبل ومايكروسوفت",
-        "q4": "What are Apple's main risk factors?",
+        "model_used": "الموديل",
+        "sources_count": "مصدر",
     },
     "en": {
         "app_title": "SEC Financial Assistant",
         "app_tagline": "Ask about Apple's and Microsoft's official financial filings",
-        "nav_chat": "Chat",
         "nav_dashboard": "Dashboard",
-        "nav_about": "About",
         "new_chat": "New chat",
+        "recent_chats": "Recent chats",
         "suggested_questions": "Suggested questions",
-        "language": "Language",
-        "theme": "Theme",
-        "theme_light": "Light",
-        "theme_dark": "Dark",
         "show_sources": "Show sources",
-        "hide_sources": "Hide sources",
         "source": "Source",
         "filed_on": "Filed on",
         "section": "Section",
         "empty_chat_title": "Ask something about Apple or Microsoft",
         "empty_chat_subtitle": "Answers are grounded only in official 10-K and 10-Q filings submitted to the SEC",
+        "greeting": "Hi! How can I help you today?",
         "thinking": "Searching the filings...",
         "footer_credit": "Built by",
-        "q1": "What was Apple's net income last quarter?",
-        "q2": "ايه إجمالي إيرادات مايكروسوفت في السنة المالية 2025؟",
-        "q3": "Compare Apple's and Microsoft's revenue",
-        "q4": "ايه أهم عوامل المخاطرة لآبل؟",
+        "model_used": "Model",
+        "sources_count": "sources",
     },
 }
 
+# الأسئلة المقترحة إنجليزي دايمًا (بغض النظر عن لغة الواجهة) - النظام
+# نفسه بيفهم عربي وإنجليزي، ده بس بخصوص شكل الأزرار في الشريط الجانبي
+SUGGESTED_QUESTIONS = [
+    "What was Apple's net income last quarter?",
+    "What was Microsoft's total revenue for fiscal year 2025?",
+    "Compare Apple's and Microsoft's revenue",
+    "What are Apple's main risk factors?",
+]
+
 
 def t(key: str) -> str:
-    """بترجع النص المترجم حسب لغة الواجهة الحالية."""
     lang = st.session_state.get("lang", "ar")
     return STRINGS[lang].get(key, key)
 
 
 # ---------------------------------------------------------------
-# إعداد الحالة العامة للجلسة (مرة واحدة بس)
+# إعداد الحالة العامة للجلسة - بما فيها دعم محادثات متعددة (زي
+# ChatGPT/Claude/Gemini): تقدر تبدأ محادثة جديدة، والقديمة تفضل
+# محفوظة وتقدر ترجعلها من الشريط الجانبي.
 # ---------------------------------------------------------------
+def _new_conversation_id() -> str:
+    return str(uuid.uuid4())
+
+
 def init_session_state():
-    defaults = {
-        "lang": "ar",
-        "theme": "light",
-        "chat_history": [],
-        "pending_question": None,
-    }
-    for key, value in defaults.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
+    if "lang" not in st.session_state:
+        st.session_state.lang = "ar"
+    if "theme" not in st.session_state:
+        st.session_state.theme = "light"
+    if "pending_question" not in st.session_state:
+        st.session_state.pending_question = None
+    if "conversations" not in st.session_state:
+        first_id = _new_conversation_id()
+        st.session_state.conversations = {first_id: {"title": None, "history": []}}
+        st.session_state.current_conv_id = first_id
+
+
+def start_new_conversation():
+    new_id = _new_conversation_id()
+    st.session_state.conversations[new_id] = {"title": None, "history": []}
+    st.session_state.current_conv_id = new_id
+
+
+def get_current_history() -> list:
+    return st.session_state.conversations[st.session_state.current_conv_id]["history"]
+
+
+def add_to_current_history(question: str, answer: str, sources: list, model_used: str = None):
+    conv = st.session_state.conversations[st.session_state.current_conv_id]
+    conv["history"].append({
+        "question": question, "answer": answer, "sources": sources, "model_used": model_used,
+    })
+    if conv["title"] is None:
+        conv["title"] = question[:42] + ("…" if len(question) > 42 else "")
 
 
 # ---------------------------------------------------------------
-# التصميم (CSS) - نظام ألوان واحد لكل الوضعين (فاتح/داكن)
+# التصميم (CSS)
 # ---------------------------------------------------------------
 def get_css() -> str:
     theme = st.session_state.get("theme", "light")
 
     if theme == "dark":
-        bg = "#1C1C1E"
-        bg_secondary = "#2C2C2E"
-        text_primary = "#F5F5F7"
-        text_secondary = "#98989D"
-        border = "#38383A"
-        card_bg = "#2C2C2E"
-        user_bubble = "#0A3D67"
-        assistant_bubble = "#2C2C2E"
+        bg = "#0B1220"
+        bg_secondary = "#121A2C"
+        text_primary = "#F2F5F9"
+        text_secondary = "#94A3B8"
+        border = "#26314A"
+        card_bg = "#141C30"
+        user_bubble = "#173357"
+        assistant_bubble = "#141C30"
+        accent = "#3B9EFF"
     else:
         bg = "#FFFFFF"
         bg_secondary = "#F5F5F7"
@@ -116,10 +134,10 @@ def get_css() -> str:
         card_bg = "#FFFFFF"
         user_bubble = "#E8F0FE"
         assistant_bubble = "#F5F5F7"
+        accent = "#0071E3"
 
-    accent = "#0071E3"
-    accent_hover = "#0077ED"
-    apple_accent = "#1D1D1F" if theme == "light" else "#F5F5F7"
+    accent_hover = accent
+    apple_accent = text_primary
     msft_accent = "#0078D4"
 
     return f"""
@@ -149,16 +167,44 @@ def get_css() -> str:
         color: var(--text-primary);
     }}
 
+    /* فرض لون النص الأساسي على كل عناصر Markdown والشات - عشان الوضع
+       الداكن يبقى مقروء دايمًا (مش معتمد على ألوان Streamlit الافتراضية) */
+    [data-testid="stMarkdownContainer"], [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMarkdownContainer"] li, [data-testid="stMarkdownContainer"] span,
+    [data-testid="stMarkdownContainer"] strong,
+    [data-testid="stChatMessageContent"] p,
+    h1, h2, h3, h4, h5, h6 {{
+        color: var(--text-primary) !important;
+    }}
+
+    .stCaption, [data-testid="stCaptionContainer"], small {{
+        color: var(--text-secondary) !important;
+    }}
+
     section[data-testid="stSidebar"] {{
         background-color: var(--bg-secondary);
         border-right: 1px solid var(--border);
     }}
-
     section[data-testid="stSidebar"] * {{
-        color: var(--text-primary);
+        color: var(--text-primary) !important;
+    }}
+    section[data-testid="stSidebar"] .stCaption {{
+        color: var(--text-secondary) !important;
     }}
 
-    /* عنوان التطبيق في الشريط الجانبي */
+    div[data-testid="stChatMessage"] {{
+        max-width: 88%;
+        background-color: var(--assistant-bubble);
+        border-radius: 16px;
+    }}
+
+    div[data-testid="stChatInput"] textarea {{
+        font-size: 16px !important;
+        border-radius: 20px !important;
+        color: var(--text-primary) !important;
+        background-color: var(--card-bg) !important;
+    }}
+
     .app-brand {{
         display: flex;
         align-items: center;
@@ -174,33 +220,10 @@ def get_css() -> str:
         background: linear-gradient(135deg, var(--apple-accent) 0%, var(--msft-accent) 100%);
         flex-shrink: 0;
     }}
-    .app-brand-text {{
-        display: flex;
-        flex-direction: column;
-        line-height: 1.25;
-    }}
-    .app-brand-title {{
-        font-weight: 650;
-        font-size: 15.5px;
-        color: var(--text-primary);
-    }}
-    .app-brand-subtitle {{
-        font-size: 12px;
-        color: var(--text-secondary);
-    }}
+    .app-brand-text {{ display: flex; flex-direction: column; line-height: 1.25; }}
+    .app-brand-title {{ font-weight: 650; font-size: 15.5px; color: var(--text-primary); }}
+    .app-brand-subtitle {{ font-size: 12px; color: var(--text-secondary); }}
 
-    /* فقاعات الشات */
-    div[data-testid="stChatMessage"] {{
-        max-width: 88%;
-    }}
-
-    /* صندوق الكتابة - حجم أكبر شبيه بـ ChatGPT / Claude */
-    div[data-testid="stChatInput"] textarea {{
-        font-size: 16px !important;
-        border-radius: 20px !important;
-    }}
-
-    /* بطاقات KPI في الداشبورد */
     .kpi-card {{
         background: var(--card-bg);
         border: 1px solid var(--border);
@@ -208,62 +231,45 @@ def get_css() -> str:
         padding: 18px 20px;
         margin-bottom: 10px;
     }}
-    .kpi-label {{
-        font-size: 13px;
-        color: var(--text-secondary);
-        margin-bottom: 6px;
-    }}
-    .kpi-value {{
-        font-size: 26px;
-        font-weight: 650;
-        color: var(--text-primary);
-    }}
-    .kpi-meta {{
-        font-size: 11.5px;
-        color: var(--text-secondary);
-        margin-top: 4px;
-    }}
+    .kpi-label {{ font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }}
+    .kpi-value {{ font-size: 26px; font-weight: 650; color: var(--text-primary); }}
+    .kpi-meta {{ font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }}
 
-    .company-header {{
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 18px;
-    }}
+    .company-header {{ display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }}
     .company-badge {{
-        width: 42px;
-        height: 42px;
-        border-radius: 11px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 15px;
-        color: white;
+        width: 42px; height: 42px; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 15px; color: white;
     }}
 
-    /* توقيع أسفل الشريط الجانبي */
     .sidebar-footer {{
-        margin-top: 24px;
+        margin-top: 20px;
         padding-top: 14px;
         border-top: 1px solid var(--border);
         font-size: 12.5px;
         color: var(--text-secondary);
         text-align: center;
     }}
+    .sidebar-footer a {{ color: var(--accent) !important; text-decoration: none; }}
 
-    /* إخفاء بعض عناصر Streamlit الافتراضية اللي مش محتاجينها */
+    .answer-meta {{
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        margin-top: 6px;
+    }}
+
+    .chat-greeting {{
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+    }}
+
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
 
-    /* استجابة للشاشات الصغيرة */
     @media (max-width: 640px) {{
-        div[data-testid="stChatMessage"] {{
-            max-width: 96%;
-        }}
-        .kpi-value {{
-            font-size: 21px;
-        }}
+        div[data-testid="stChatMessage"] {{ max-width: 96%; }}
+        .kpi-value {{ font-size: 21px; }}
     }}
     </style>
     """
@@ -290,13 +296,18 @@ def render_sidebar_brand():
 
 def render_sidebar_footer():
     st.markdown(
-        f"""<div class="sidebar-footer">{t('footer_credit')}<br><strong>Elia Fahmy</strong></div>""",
+        f"""
+        <div class="sidebar-footer">
+            {t('footer_credit')}<br>
+            <strong>Elia Fahmy</strong><br>
+            <a href="https://www.linkedin.com/in/elia-fahmy" target="_blank">LinkedIn ↗</a>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
 
 def render_lang_theme_controls():
-    """أزرار تبديل اللغة والمظهر - بتتكرر في كل صفحة."""
     col1, col2 = st.columns(2)
     with col1:
         lang_label = "EN" if st.session_state.lang == "ar" else "AR"

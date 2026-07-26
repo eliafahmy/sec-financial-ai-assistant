@@ -9,7 +9,7 @@ companies:
   - name: "Apple Inc."
     ticker: "AAPL"
     cik: "0000320193"     # SEC Central Index Key الثابت للشركة
-    aliases: ["apple", "aapl", "أبل", "ابل"]
+    aliases: ["apple", "aapl", "أبل", "ابل", "آبل"]
   - name: "Microsoft Corporation"
     ticker: "MSFT"
     cik: "0000789019"

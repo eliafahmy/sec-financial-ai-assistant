@@ -1,0 +1,161 @@
+# =============================================================
+# config.yaml
+# الإعدادات الموحدة لمشروع SEC Financial AI Assistant
+# أي قيمة محتاجة تتغير (شركة جديدة، سنة، حجم Chunk...) تتغير هنا بس
+# =============================================================
+
+# ---- الشركات المستهدفة في مرحلة الـ PoC ----
+companies:
+  - name: "Apple Inc."
+    ticker: "AAPL"
+    cik: "0000320193"     # SEC Central Index Key الثابت للشركة
+    aliases: ["apple", "aapl", "أبل", "ابل"]
+  - name: "Microsoft Corporation"
+    ticker: "MSFT"
+    cik: "0000789019"
+    aliases: ["microsoft", "msft", "مايكروسوفت", "ميكروسوفت"]
+
+# ---- أنواع التقارير المطلوبة ----
+report_types:
+  - "10-K"    # تقرير سنوي
+  - "10-Q"    # تقرير ربعي
+
+# ---- النطاق الزمني ----
+lookback_years: 1
+
+# ---- إعدادات SEC EDGAR API ----
+sec_edgar:
+  # SEC بيرفض أي طلب من غير User-Agent فيه بيانات تواصل حقيقية
+  # لازم تغير القيمة دي لاسمك وإيميلك قبل التشغيل الفعلي
+  user_agent: "SEC-Financial-AI-Assistant student-project@example.com"
+  submissions_base_url: "https://data.sec.gov/submissions"
+  archives_base_url: "https://www.sec.gov/Archives/edgar/data"
+  companyfacts_base_url: "https://data.sec.gov/api/xbrl/companyfacts"   # مصدر الأرقام المالية النظيفة
+  requests_per_second: 8       # SEC limit الرسمي 10، بنسيب هامش أمان
+  raw_data_dir: "data/raw"
+  facts_dir: "data/facts"       # مكان حفظ الأرقام المالية المنظمة (JSON)
+  manifest_path: "data/manifest/documents_manifest.json"
+
+# ---- إعدادات التقسيم (Chunking) ----
+chunking:
+  chunk_size_tokens: 1000
+  chunk_overlap_tokens: 150
+  never_split_tables: true      # الجداول المالية متتقسمش أبدًا
+  output_path: "data/processed/chunks/all_chunks.json"
+
+# ---- إعدادات التمثيل الرقمي ----
+# ملحوظة مهمة: اخترنا موديل صغير (~470 ميجا) بدل bge-m3 (~2+ جيجا) لأن
+# Streamlit Community Cloud المجاني محدود بـ 1GB RAM بس. الموديل الصغير
+# هيشتغل محليًا جوه التطبيق المنشور نفسه وقت الاستعلام الحي، من غير أي
+# اعتماد على API خارجي (وبالتالي بلا أي حصة شهرية ممكن تخلص).
+embedding:
+  model_name: "intfloat/multilingual-e5-small"
+  vector_size: 384
+  batch_size: 32
+  # موديلات عائلة E5 بتحتاج بادئة قبل كل نص حسب نوعه (Convention رسمي للموديل)
+  passage_prefix: "passage: "
+  query_prefix: "query: "
+
+# ---- إعدادات قاعدة المتجهات ----
+vector_store:
+  provider: "qdrant"
+  collection_name: "sec_filings"
+  # القيم الحقيقية (URL / API Key) بتتحط في متغيرات البيئة (Colab Secrets)
+  # باسم QDRANT_URL و QDRANT_API_KEY - مش هنا، عشان الملف ده آمن نرفعه على GitHub
+
+# ---- إعدادات الاسترجاع ----
+# ملحوظة: استغنينا عن الـ Reranker التقيل (bge-reranker-v2-m3، 1+ جيجا)
+# لنفس سبب اختيار موديل Embedding صغير - محدودية الـ 1GB RAM في Streamlit
+# المجاني. بدلاً منه: نسترجع عدد أكبر من النتائج (initial_top_k)، نرتبهم
+# ترتيب إضافي خفيف بالتطابق اللفظي (بلا أي موديل جديد)، ونودّي أفضل
+# final_top_n للموديل اللغوي في 07_prompting.py مع تعليمات صريحة يختار
+# الأدق منهم.
+retrieval:
+  initial_top_k: 15        # عدد النتائج المسترجعة من Qdrant قبل الترتيب الإضافي
+  final_top_n: 8            # عدد النتائج اللي فعليًا هتوصل للموديل اللغوي
+  lexical_boost_weight: 0.02   # وزن بسيط لكل كلمة متطابقة بين السؤال والنص
+
+# ---- إعدادات مرحلة التنظيف (02_preprocessing.py) ----
+processing:
+  narrative_dir: "data/processed/narrative"
+  facts_output_dir: "data/processed/facts"
+  # عناوين الجداول المالية المطلوب تجاهلها من النص السردي
+  # (أرقامها هتيجي من Company Facts API بدل ما تتستخرج من الجدول المكسور)
+  financial_statement_markers:
+    - "CONDENSED CONSOLIDATED STATEMENTS OF OPERATIONS"
+    - "CONSOLIDATED STATEMENTS OF OPERATIONS"
+    - "CONDENSED CONSOLIDATED BALANCE SHEET"
+    - "CONSOLIDATED BALANCE SHEET"
+    - "CONDENSED CONSOLIDATED STATEMENTS OF CASH FLOWS"
+    - "CONSOLIDATED STATEMENTS OF CASH FLOWS"
+    - "CONDENSED CONSOLIDATED STATEMENTS OF SHAREHOLDERS"
+    - "CONSOLIDATED STATEMENTS OF SHAREHOLDERS"
+    - "CONDENSED CONSOLIDATED STATEMENTS OF COMPREHENSIVE INCOME"
+  # المؤشرات المالية القياسية (US-GAAP) اللي هنستخرجها من Company Facts
+  # مقسّمة حسب نوع القائمة المالية لسهولة المراجعة والتوسيع لاحقًا
+  key_financial_tags:
+    # ---- قائمة الدخل (Income Statement) ----
+    - "Revenues"
+    - "RevenueFromContractWithCustomerExcludingAssessedTax"
+    - "CostOfRevenue"
+    - "CostOfGoodsAndServicesSold"
+    - "GrossProfit"
+    - "ResearchAndDevelopmentExpense"
+    - "SellingGeneralAndAdministrativeExpense"
+    - "OperatingExpenses"
+    - "OperatingIncomeLoss"
+    - "NonoperatingIncomeExpense"
+    - "InterestExpense"
+    - "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest"
+    - "IncomeTaxExpenseBenefit"
+    - "NetIncomeLoss"
+    - "EarningsPerShareBasic"
+    - "EarningsPerShareDiluted"
+    - "WeightedAverageNumberOfSharesOutstandingBasic"
+    - "WeightedAverageNumberOfDilutedSharesOutstanding"
+
+    # ---- الميزانية: الأصول (Balance Sheet - Assets) ----
+    - "CashAndCashEquivalentsAtCarryingValue"
+    - "ShortTermInvestments"
+    - "AccountsReceivableNetCurrent"
+    - "InventoryNet"
+    - "AssetsCurrent"
+    - "PropertyPlantAndEquipmentNet"
+    - "Goodwill"
+    - "IntangibleAssetsNetExcludingGoodwill"
+    - "LongTermInvestments"
+    - "OtherAssetsNoncurrent"
+    - "Assets"
+
+    # ---- الميزانية: الالتزامات (Balance Sheet - Liabilities) ----
+    - "AccountsPayableCurrent"
+    - "AccruedLiabilitiesCurrent"
+    - "ContractWithCustomerLiabilityCurrent"   # إيرادات مؤجلة (Deferred Revenue)
+    - "LongTermDebtCurrent"
+    - "LiabilitiesCurrent"
+    - "LongTermDebtNoncurrent"
+    - "LongTermDebt"
+    - "OperatingLeaseLiabilityNoncurrent"
+    - "Liabilities"
+
+    # ---- حقوق الملكية (Stockholders' Equity) ----
+    - "CommonStockValue"
+    - "RetainedEarningsAccumulatedDeficit"
+    - "AccumulatedOtherComprehensiveIncomeLossNetOfTax"
+    - "TreasuryStockValue"
+    - "StockholdersEquity"
+
+    # ---- قائمة التدفقات النقدية (Cash Flow Statement) ----
+    - "NetCashProvidedByUsedInOperatingActivities"
+    - "NetCashProvidedByUsedInInvestingActivities"
+    - "NetCashProvidedByUsedInFinancingActivities"
+    - "PaymentsForRepurchaseOfCommonStock"
+    - "PaymentsOfDividends"
+    - "DepreciationDepletionAndAmortization"
+    - "ShareBasedCompensation"
+
+# ---- إعدادات توليد الإجابة ----
+generation:
+  provider: "openrouter"
+  fallback_free_only: true   # يجيب قايمة الموديلات المجانية المتاحة وقت التشغيل
+  temperature: 0.1            # قيمة منخفضة لتقليل الهلوسة

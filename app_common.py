@@ -144,6 +144,9 @@ def get_css() -> str:
         text_secondary = "#94A3B8"
         border = "#334155"
         card_bg = "#1E293B"
+        input_bg = "#1E293B"
+        input_text = "#F1F5F9"
+        placeholder_text = "#94A3B8"
         button_bg = "#1E293B"
         button_hover_bg = "#293548"
         assistant_bubble = "#1E293B"
@@ -153,8 +156,11 @@ def get_css() -> str:
         bg_secondary = "#F1F5F9"
         text_primary = "#1E293B"
         text_secondary = "#64748B"
-        border = "#E2E8F0"
+        border = "#CBD5E1"
         card_bg = "#FFFFFF"
+        input_bg = "#FFFFFF"
+        input_text = "#0F172A"
+        placeholder_text = "#64748B"
         button_bg = "#FFFFFF"
         button_hover_bg = "#F1F5F9"
         assistant_bubble = "#FFFFFF"
@@ -167,7 +173,9 @@ def get_css() -> str:
         --text-secondary: {text_secondary}; --border: {border}; --card-bg: {card_bg};
         --button-bg: {button_bg}; --button-hover-bg: {button_hover_bg};
         --assistant-bubble: {assistant_bubble}; --accent: {accent};
+        --input-bg: {input_bg}; --input-text: {input_text}; --placeholder-text: {placeholder_text};
     }}
+    
     html, body, [class*="css"] {{
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
             "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
@@ -175,7 +183,7 @@ def get_css() -> str:
     }}
     .stApp {{ background-color: var(--bg) !important; color: var(--text-primary); }}
 
-    /* حل مشكلة الهيدر الأبيض العلوي في الصورة */
+    /* تلوين الهيدر العلوي */
     header[data-testid="stHeader"],
     [data-testid="stHeader"] > div {{
         background-color: var(--bg) !important;
@@ -229,7 +237,7 @@ def get_css() -> str:
         border: 1px solid var(--border); border-radius: 14px;
     }}
 
-    /* تلوين الحاوية السفلى كاملة بعرض الشاشة */
+    /* تلوين الحاوية السفلى بالكامل بعرض الشاشة */
     footer, 
     [data-testid="stBottom"], 
     [data-testid="stBottomBlockContainer"],
@@ -238,17 +246,24 @@ def get_css() -> str:
         background: var(--bg) !important;
     }}
 
+    /* إصلاح لون وشكل حقل الإدخال بالكامل */
     div[data-testid="stChatInput"] {{
-        background-color: var(--card-bg) !important;
+        background-color: var(--input-bg) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 20px !important;
+        border-radius: 16px !important;
         max-width: 768px !important;
         margin: 0 auto !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
     }}
     div[data-testid="stChatInput"] textarea {{
         font-size: 15px !important;
-        color: var(--text-primary) !important;
+        color: var(--input-text) !important;
         background-color: transparent !important;
+        -webkit-text-fill-color: var(--input-text) !important;
+    }}
+    div[data-testid="stChatInput"] textarea::placeholder {{
+        color: var(--placeholder-text) !important;
+        -webkit-text-fill-color: var(--placeholder-text) !important;
     }}
     div[data-testid="stChatInput"] button {{
         background-color: var(--accent) !important;

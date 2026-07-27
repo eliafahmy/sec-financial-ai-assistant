@@ -1,17 +1,18 @@
 """
 app_common.py
 ==============
-وحدة مشتركة بين كل صفحات التطبيق: التصميم (CSS)، نصوص الترجمة، وإعداد
-الحالة العامة للجلسة (بما فيها المحادثات المتعددة).
+وحدة مشتركة: التصميم (CSS)، الترجمة، والحالة العامة للجلسة.
+
+نظام التصميم: "Corporate Fintech" - رمادي Slate/Zinc رصين كأساس،
+مع لون رسمي واحد لكل شركة (Apple: جرافيت غامق، Microsoft: أزرق كلاسيكي)،
+وألوان بيانات محايدة (أخضر زمردي للإيجابي، أحمر مكتبي للتحذيرات).
+بلا أي Gradients زاهية أو أيقونات روبوت/شرارات AI نمطية.
 """
 
 import uuid
 
 import streamlit as st
 
-# ---------------------------------------------------------------
-# نصوص الترجمة (واجهة فقط - الأسئلة المقترحة إنجليزي دايمًا بمعزل عن اللغة)
-# ---------------------------------------------------------------
 STRINGS = {
     "ar": {
         "app_title": "مساعد SEC المالي",
@@ -53,8 +54,6 @@ STRINGS = {
     },
 }
 
-# الأسئلة المقترحة إنجليزي دايمًا (بغض النظر عن لغة الواجهة) - النظام
-# نفسه بيفهم عربي وإنجليزي، ده بس بخصوص شكل الأزرار في الشريط الجانبي
 SUGGESTED_QUESTIONS = [
     "What was Apple's net income last quarter?",
     "What was Microsoft's total revenue for fiscal year 2025?",
@@ -69,9 +68,7 @@ def t(key: str) -> str:
 
 
 # ---------------------------------------------------------------
-# إعداد الحالة العامة للجلسة - بما فيها دعم محادثات متعددة (زي
-# ChatGPT/Claude/Gemini): تقدر تبدأ محادثة جديدة، والقديمة تفضل
-# محفوظة وتقدر ترجعلها من الشريط الجانبي.
+# حالة الجلسة - محادثات متعددة
 # ---------------------------------------------------------------
 def _new_conversation_id() -> str:
     return str(uuid.uuid4())
@@ -110,35 +107,78 @@ def add_to_current_history(question: str, answer: str, sources: list, model_used
 
 
 # ---------------------------------------------------------------
+# أيقونات SVG بسيطة (خط رفيع، بلا امتلاء - بروح Lucide/Heroicons)
+# بدل الإيموجي، عشان شكل احترافي مؤسسي مش شكل "أدوات AI" نمطي
+# ---------------------------------------------------------------
+def icon(name: str, size: int = 16, color: str = "currentColor") -> str:
+    paths = {
+        "sun": '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/',
+        "moon": '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/',
+        "globe": '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20z"/',
+        "plus": '<path d="M12 5v14M5 12h14"/',
+        "chat": '<path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/',
+        "doc": '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/',
+        "link": '<path d="M10 13a5 5 0 007.07 0l2.83-2.83a5 5 0 00-7.07-7.07L11.5 4.5"/><path d="M14 11a5 5 0 00-7.07 0L4.1 13.83a5 5 0 007.07 7.07L12.5 19.5"/',
+        "chart": '<path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-4"/',
+    }
+    inner = paths.get(name, "")
+    return (
+        f'<svg width="{size}" height="{size}" viewBox="0 0 24 24" fill="none" '
+        f'stroke="{color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{inner}</svg>'
+    )
+
+
+def get_logo_svg(size: int = 36) -> str:
+    """
+    لوجو مصمم خصيصًا للمشروع - شكل مجرد (بدون أي علامة تجارية حقيقية):
+    مربع بحواف دائرية مقسوم لونين (جرافيت لآبل + أزرق لمايكروسوفت)
+    مع رسم بياني بسيط فوقهم يرمز للتحليل المالي.
+    """
+    return f"""
+    <svg width="{size}" height="{size}" viewBox="0 0 40 40" fill="none">
+        <rect width="40" height="40" rx="10" fill="#1E293B"/>
+        <path d="M40 0 L40 40 L14 40 Z" fill="#2563EB"/>
+        <rect x="9" y="21" width="4.5" height="10" rx="1" fill="#F1F5F9"/>
+        <rect x="17.5" y="15" width="4.5" height="16" rx="1" fill="#F1F5F9"/>
+        <rect x="26" y="9" width="4.5" height="22" rx="1" fill="#F8FAFC" opacity="0.95"/>
+    </svg>
+    """
+
+
+# ---------------------------------------------------------------
 # التصميم (CSS)
 # ---------------------------------------------------------------
 def get_css() -> str:
     theme = st.session_state.get("theme", "light")
 
     if theme == "dark":
-        bg = "#0B1220"
-        bg_secondary = "#121A2C"
-        text_primary = "#F2F5F9"
-        text_secondary = "#94A3B8"
-        border = "#26314A"
-        card_bg = "#141C30"
-        user_bubble = "#173357"
-        assistant_bubble = "#141C30"
-        accent = "#3B9EFF"
+        bg = "#0F172A"          # slate-900
+        bg_secondary = "#1E293B"  # slate-800
+        text_primary = "#F1F5F9"  # slate-100
+        text_secondary = "#94A3B8"  # slate-400
+        border = "#334155"        # slate-700
+        card_bg = "#1E293B"
+        button_bg = "#1E293B"
+        button_hover_bg = "#293548"
+        user_bubble = "#1E3A5F"
+        assistant_bubble = "#1E293B"
+        accent = "#3B82F6"        # blue-500
+        positive = "#34D399"
+        negative = "#FB7185"
     else:
-        bg = "#FFFFFF"
-        bg_secondary = "#F5F5F7"
-        text_primary = "#1D1D1F"
-        text_secondary = "#6E6E73"
-        border = "#D2D2D7"
+        bg = "#F8FAFC"           # slate-50
+        bg_secondary = "#F1F5F9"  # slate-100
+        text_primary = "#1E293B"  # slate-800
+        text_secondary = "#64748B"  # slate-500
+        border = "#E2E8F0"        # slate-200
         card_bg = "#FFFFFF"
-        user_bubble = "#E8F0FE"
-        assistant_bubble = "#F5F5F7"
-        accent = "#0071E3"
-
-    accent_hover = accent
-    apple_accent = text_primary
-    msft_accent = "#0078D4"
+        button_bg = "#FFFFFF"
+        button_hover_bg = "#F1F5F9"
+        user_bubble = "#EFF6FF"
+        assistant_bubble = "#FFFFFF"
+        accent = "#2563EB"        # blue-600
+        positive = "#059669"
+        negative = "#E11D48"
 
     return f"""
     <style>
@@ -149,12 +189,13 @@ def get_css() -> str:
         --text-secondary: {text_secondary};
         --border: {border};
         --card-bg: {card_bg};
+        --button-bg: {button_bg};
+        --button-hover-bg: {button_hover_bg};
         --user-bubble: {user_bubble};
         --assistant-bubble: {assistant_bubble};
         --accent: {accent};
-        --accent-hover: {accent_hover};
-        --apple-accent: {apple_accent};
-        --msft-accent: {msft_accent};
+        --positive: {positive};
+        --negative: {negative};
     }}
 
     html, body, [class*="css"] {{
@@ -162,13 +203,8 @@ def get_css() -> str:
             "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     }}
 
-    .stApp {{
-        background-color: var(--bg);
-        color: var(--text-primary);
-    }}
+    .stApp {{ background-color: var(--bg); color: var(--text-primary); }}
 
-    /* فرض لون النص الأساسي على كل عناصر Markdown والشات - عشان الوضع
-       الداكن يبقى مقروء دايمًا (مش معتمد على ألوان Streamlit الافتراضية) */
     [data-testid="stMarkdownContainer"], [data-testid="stMarkdownContainer"] p,
     [data-testid="stMarkdownContainer"] li, [data-testid="stMarkdownContainer"] span,
     [data-testid="stMarkdownContainer"] strong,
@@ -176,100 +212,117 @@ def get_css() -> str:
     h1, h2, h3, h4, h5, h6 {{
         color: var(--text-primary) !important;
     }}
-
-    .stCaption, [data-testid="stCaptionContainer"], small {{
-        color: var(--text-secondary) !important;
-    }}
+    .stCaption, [data-testid="stCaptionContainer"], small {{ color: var(--text-secondary) !important; }}
 
     section[data-testid="stSidebar"] {{
         background-color: var(--bg-secondary);
         border-right: 1px solid var(--border);
     }}
-    section[data-testid="stSidebar"] * {{
-        color: var(--text-primary) !important;
-    }}
-    section[data-testid="stSidebar"] .stCaption {{
-        color: var(--text-secondary) !important;
-    }}
+    section[data-testid="stSidebar"] * {{ color: var(--text-primary) !important; }}
+    section[data-testid="stSidebar"] .stCaption {{ color: var(--text-secondary) !important; }}
 
+    /* ---- الأزرار: خلفية ولون واضحين في الوضعين، وحالة Hover مميزة ---- */
+    div[data-testid="stButton"] button {{
+        background-color: var(--button-bg) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 10px !important;
+        font-weight: 500 !important;
+        transition: all 0.15s ease;
+    }}
+    div[data-testid="stButton"] button p {{ color: var(--text-primary) !important; }}
+    div[data-testid="stButton"] button:hover {{
+        background-color: var(--button-hover-bg) !important;
+        border-color: var(--accent) !important;
+    }}
+    div[data-testid="stButton"] button:hover p {{ color: var(--accent) !important; }}
+
+    /* فقاعات الشات */
     div[data-testid="stChatMessage"] {{
         max-width: 88%;
         background-color: var(--assistant-bubble);
-        border-radius: 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
     }}
 
+    /* صندوق الكتابة */
     div[data-testid="stChatInput"] textarea {{
         font-size: 16px !important;
         border-radius: 20px !important;
         color: var(--text-primary) !important;
         background-color: var(--card-bg) !important;
     }}
+    div[data-testid="stChatInput"] {{
+        background-color: var(--bg) !important;
+        border-top: 1px solid var(--border);
+    }}
+    div[data-testid="stChatInput"] button {{
+        background-color: var(--accent) !important;
+        border-radius: 50% !important;
+    }}
+    div[data-testid="stChatInput"] button svg {{ color: white !important; fill: white !important; }}
 
     .app-brand {{
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 4px 0 18px 0;
-        border-bottom: 1px solid var(--border);
-        margin-bottom: 16px;
-    }}
-    .app-brand-mark {{
-        width: 34px;
-        height: 34px;
-        border-radius: 9px;
-        background: linear-gradient(135deg, var(--apple-accent) 0%, var(--msft-accent) 100%);
-        flex-shrink: 0;
+        display: flex; align-items: center; gap: 10px;
+        padding: 4px 0 18px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px;
     }}
     .app-brand-text {{ display: flex; flex-direction: column; line-height: 1.25; }}
     .app-brand-title {{ font-weight: 650; font-size: 15.5px; color: var(--text-primary); }}
     .app-brand-subtitle {{ font-size: 12px; color: var(--text-secondary); }}
 
     .kpi-card {{
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 18px 20px;
-        margin-bottom: 10px;
+        background: var(--card-bg); border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        border-radius: 10px; padding: 16px 18px; margin-bottom: 10px;
     }}
-    .kpi-label {{ font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }}
-    .kpi-value {{ font-size: 26px; font-weight: 650; color: var(--text-primary); }}
+    .kpi-label {{ font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }}
+    .kpi-value {{ font-size: 24px; font-weight: 650; color: var(--text-primary); }}
     .kpi-meta {{ font-size: 11.5px; color: var(--text-secondary); margin-top: 4px; }}
 
     .company-header {{ display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }}
     .company-badge {{
-        width: 42px; height: 42px; border-radius: 11px;
+        width: 42px; height: 42px; border-radius: 10px;
         display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 15px; color: white;
+        font-weight: 700; font-size: 14px; color: white;
     }}
 
     .sidebar-footer {{
-        margin-top: 20px;
-        padding-top: 14px;
-        border-top: 1px solid var(--border);
-        font-size: 12.5px;
-        color: var(--text-secondary);
-        text-align: center;
+        margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--border);
+        font-size: 12.5px; color: var(--text-secondary); text-align: center;
     }}
     .sidebar-footer a {{ color: var(--accent) !important; text-decoration: none; }}
 
     .answer-meta {{
-        font-size: 11.5px;
-        color: var(--text-secondary);
-        margin-top: 6px;
+        font-size: 11.5px; color: var(--text-secondary); margin-top: 8px;
+        display: flex; align-items: center; gap: 6px;
     }}
 
     .chat-greeting {{
-        font-size: 14px;
-        color: var(--text-secondary);
-        margin-bottom: 6px;
+        font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;
+        display: flex; align-items: center; gap: 6px;
     }}
+
+    /* بطاقة مصدر (Citation) بشكل Badge أدق واحترافي */
+    .citation-card {{
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 10px 14px;
+        margin-bottom: 8px;
+        font-size: 12.5px;
+    }}
+    .citation-card .cc-top {{
+        display: flex; justify-content: space-between; align-items: center;
+        color: var(--text-secondary); font-family: monospace; margin-bottom: 4px;
+    }}
+    .citation-card a {{ color: var(--accent) !important; text-decoration: none; }}
 
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
 
     @media (max-width: 640px) {{
         div[data-testid="stChatMessage"] {{ max-width: 96%; }}
-        .kpi-value {{ font-size: 21px; }}
+        .kpi-value {{ font-size: 20px; }}
     }}
     </style>
     """
@@ -283,7 +336,7 @@ def render_sidebar_brand():
     st.markdown(
         f"""
         <div class="app-brand">
-            <div class="app-brand-mark"></div>
+            {get_logo_svg(36)}
             <div class="app-brand-text">
                 <div class="app-brand-title">{t('app_title')}</div>
                 <div class="app-brand-subtitle">{t('app_tagline')}</div>
@@ -315,7 +368,7 @@ def render_lang_theme_controls():
             st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
             st.rerun()
     with col2:
-        theme_icon = "🌙" if st.session_state.theme == "light" else "☀️"
-        if st.button(theme_icon, use_container_width=True, key="theme_toggle"):
+        theme_icon_emoji = "🌙" if st.session_state.theme == "light" else "☀️"
+        if st.button(theme_icon_emoji, use_container_width=True, key="theme_toggle"):
             st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
             st.rerun()

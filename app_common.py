@@ -235,17 +235,20 @@ def get_css() -> str:
         border: 1px solid var(--border); border-radius: 14px;
     }}
 
-    /* تغطية الحاوية السفلى بالكامل بنفس لون الخلفية لمنع ظهور الجزء الأبيض */
-    footer, [data-testid="stBottom"], [data-testid="stBottomBlockContainer"] {{
+    /* جعل الحاوية السفلى بالكامل بعرض الشاشة تأخذ نفس لون الخلفية بدون أجزاء بيضاء */
+    footer, 
+    [data-testid="stBottom"], 
+    [data-testid="stBottomBlockContainer"],
+    div[data-testid="stBottom"] > div {{
         background-color: var(--bg) !important;
+        background: var(--bg) !important;
     }}
 
-    /* تنسيق وتوسيط شريط كتابة الشات */
+    /* تنسيق حقل إدخال الشات وتحديد أقصى عرض له في المنتصف */
     div[data-testid="stChatInput"] {{
         background-color: var(--card-bg) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 24px !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+        border-radius: 20px !important;
         max-width: 768px !important;
         margin: 0 auto !important;
     }}

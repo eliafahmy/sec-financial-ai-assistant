@@ -145,7 +145,7 @@ def get_css() -> str:
         border = "#334155"
         card_bg = "#111827"
         input_bg = "#1E293B"
-        input_text = "#FFFFFF"
+        input_text = "#000000" 
         placeholder_text = "#94A3B8"
         button_bg = "#1E293B"
         button_hover_bg = "#334155"

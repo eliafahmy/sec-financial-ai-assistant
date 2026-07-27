@@ -140,7 +140,7 @@ def get_css() -> str:
         # Dark Theme (Higher Contrast)
         bg = "#020617"                  # Darker background
         bg_secondary = "#111012"
-        text_primary = "#111012"        # Pure white
+        text_primary = "#FFFFFF"        # Pure white
         text_secondary = "#CBD5E1"
         border = "#334155"
         card_bg = "#111827"

@@ -1,9 +1,7 @@
 """
 app_common.py
 ==============
-وحدة مشتركة: التصميم (CSS)، الترجمة، الحالة العامة، والشريط الجانبي
-الموحّد (بما فيه التنقل بين الصفحات بأيقونات ومسميات مخصصة بدل الاعتماد
-على تسمية الملفات التلقائية من Streamlit).
+وحدة مشتركة: التصميم (CSS)، الترجمة، الحالة العامة، والشريط الجانبي.
 """
 
 import textwrap
@@ -185,14 +183,12 @@ def get_css() -> str:
         --placeholder-text: {placeholder_text};
     }}
     
-    /* إجبار الخلفية العامة */
     html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {{
         background-color: var(--bg) !important;
         color: var(--text-primary) !important;
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     }}
 
-    /* إجبار لون النصوص حسب الثيم المختار */
     [data-testid="stAppViewContainer"] p,
     [data-testid="stAppViewContainer"] span,
     [data-testid="stAppViewContainer"] label,
@@ -209,7 +205,6 @@ def get_css() -> str:
         color: var(--text-secondary) !important; 
     }}
     
-    /* الشريط الجانبي */
     section[data-testid="stSidebar"] {{ 
         background-color: var(--bg-secondary) !important; 
         border-right: 1px solid var(--border) !important; 
@@ -221,7 +216,6 @@ def get_css() -> str:
         color: var(--text-secondary) !important; 
     }}
     
-    /* الأزرار */
     div[data-testid="stButton"] button {{
         background-color: var(--button-bg) !important; 
         color: var(--text-primary) !important;
@@ -240,7 +234,6 @@ def get_css() -> str:
         color: var(--accent) !important; 
     }}
     
-    /* روابط التنقل */
     div[data-testid="stSidebarNav"] li a,
     div[data-testid="stPageLink"] a {{
         background-color: var(--button-bg) !important;
@@ -261,7 +254,6 @@ def get_css() -> str:
         color: var(--text-primary) !important;
     }}
 
-    /* فقاعات المحادثة */
     div[data-testid="stChatMessage"] {{
         max-width: 88%; 
         background-color: var(--assistant-bubble) !important;
@@ -269,7 +261,6 @@ def get_css() -> str:
         border-radius: 14px;
     }}
 
-    /* الفوتر ومربع الإدخال */
     footer, 
     [data-testid="stBottom"], 
     [data-testid="stBottomBlockContainer"],
@@ -336,24 +327,20 @@ def get_css() -> str:
     """)
 
 
-def render_lang_theme_controls():
-    col1, col2 = st.columns(2)
-    with col1:
-        lang_label = "EN" if st.session_state.lang == "ar" else "AR"
-        if st.button(f"🌐 {lang_label}", use_container_width=True, key="lang_toggle"):
-            st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
-            st.rerun()
-    with col2:
-        theme_icon_emoji = "☀️" if st.session_state.theme == "dark" else "🌙"
-        if st.button(theme_icon_emoji, use_container_width=True, key="theme_toggle"):
-            st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
-            st.rerun()
-
-
 def inject_css():
     st.markdown(get_css(), unsafe_allow_html=True)
 
 
+def render_sidebar_brand():
+    md_html(f"""
+    <div class="app-brand">
+    {get_logo_svg(36)}
+    <div class="app-brand-text">
+    <div class="app-brand-title">{t('app_title')}</div>
+    <div class="app-brand-subtitle">{t('app_tagline')}</div>
+    </div>
+    </div>
+    """)
 
 
 def render_sidebar_footer():
@@ -374,7 +361,7 @@ def render_lang_theme_controls():
             st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
             st.rerun()
     with col2:
-        theme_icon_emoji = "🌙" if st.session_state.theme == "light" else "☀️"
+        theme_icon_emoji = "☀️" if st.session_state.theme == "dark" else "🌙"
         if st.button(theme_icon_emoji, use_container_width=True, key="theme_toggle"):
-            st.session_state.theme = "dark" if st.session_state.theme == "light" else "light"
+            st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
             st.rerun()

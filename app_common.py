@@ -311,15 +311,15 @@ def render_sidebar_footer():
 
 def render_lang_theme_controls():
     col1, col2 = st.columns(2)
-    
+
     with col1:
         lang_label = "EN" if st.session_state.lang == "ar" else "AR"
-        if st.button(f"🌐 {lang_label}", use_container_width=True, key="lang_toggle"):
+        if st.button(lang_label, icon=":material/language:", use_container_width=True, key="lang_toggle"):
             st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
             st.rerun()
 
     with col2:
-        theme_icon = ":material/wb_sunny:" if st.session_state.theme == "dark" else ":material/dark_mode:"
-        if st.button(theme_icon, use_container_width=True, key="theme_toggle"):
+        current_icon = ":material/wb_sunny:" if st.session_state.theme == "dark" else ":material/dark_mode:"
+        if st.button("", icon=current_icon, use_container_width=True, key="theme_toggle"):
             st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
             st.rerun()

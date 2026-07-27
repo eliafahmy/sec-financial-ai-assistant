@@ -94,6 +94,17 @@ def render_chat_page():
     history = get_current_history()
 
     if not history:
+        # جعل شريط الكتابة يتمركز في منتصف الشاشة في بداية الشات الفارغ
+        md_html("""
+        <style>
+        div[data-testid="stBottom"] {
+            position: relative !important;
+            bottom: auto !important;
+            margin-top: 40px !important;
+            background: transparent !important;
+        }
+        </style>
+        """)
         md_html(f"""
         <div style="text-align:center; padding: 40px 20px 10px 20px; color: var(--text-secondary);">
         <div style="margin-bottom: 14px;">{icon('chart', 34, 'var(--accent)')}</div>

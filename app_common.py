@@ -139,7 +139,7 @@ def get_css() -> str:
     if theme == "dark":
         # Dark Theme (Higher Contrast)
         bg = "#020617"                  # Darker background
-        bg_secondary = "#0F172A"
+        bg_secondary = "#111012"
         text_primary = "#111012"        # Pure white
         text_secondary = "#CBD5E1"
         border = "#334155"

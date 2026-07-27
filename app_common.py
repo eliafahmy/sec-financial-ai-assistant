@@ -317,7 +317,7 @@ def render_lang_theme_controls():
             st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
             st.rerun()
     with col2:
-        theme_icon_emoji = "☀️" if st.session_state.theme == "dark" else "🌙"
-        if st.button(theme_icon_emoji, use_container_width=True, key="theme_toggle"):
-            st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
-            st.rerun()
+    theme_icon = ":material/wb_sunny:" if st.session_state.theme == "dark" else ":material/dark_mode:"
+    if st.button(theme_icon, use_container_width=True, key="theme_toggle"):
+        st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
+        st.rerun()

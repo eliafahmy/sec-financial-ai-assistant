@@ -28,9 +28,9 @@ st.set_page_config(
 init_session_state()
 
 pages = [
-    st.Page(render_chat_page, title="Chat", icon="💬", default=True, url_path="chat"),
-    st.Page(render_dashboard_page, title="Dashboard", icon="📊", url_path="dashboard"),
-    st.Page(render_about_page, title="About", icon="ℹ️", url_path="about"),
+    st.Page(render_chat_page, title="Chat", icon=":material/chat:", default=True, url_path="chat"),
+    st.Page(render_dashboard_page, title="Dashboard", icon=":material/speed:", url_path="dashboard"),
+    st.Page(render_about_page, title="About", icon=":material/info:", url_path="about"),
 ]
 
 navigation = st.navigation(pages, position="sidebar")

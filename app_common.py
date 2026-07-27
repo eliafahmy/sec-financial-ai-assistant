@@ -153,18 +153,18 @@ def get_css() -> str:
         assistant_bubble = "#1E293B"
         accent = "#3B82F6"
     else:
-        bg = "#F8FAFC"
-        bg_secondary = "#F1F5F9"
-        text_primary = "#1E293B"
-        text_secondary = "#64748B"
-        border = "#CBD5E1"
+        bg = "#FFFFFF"
+        bg_secondary = "#F8FAFC"
+        text_primary = "#0F172A"
+        text_secondary = "#475569"
+        border = "#E2E8F0"
         card_bg = "#FFFFFF"
-        input_bg = "#FFFFFF"
+        input_bg = "#F8FAFC"
         input_text = "#0F172A"
         placeholder_text = "#64748B"
         button_bg = "#FFFFFF"
         button_hover_bg = "#F1F5F9"
-        assistant_bubble = "#FFFFFF"
+        assistant_bubble = "#F8FAFC"
         accent = "#2563EB"
 
     return textwrap.dedent(f"""
@@ -185,12 +185,14 @@ def get_css() -> str:
         --placeholder-text: {placeholder_text};
     }}
     
+    /* إجبار الخلفية العامة */
     html, body, .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {{
         background-color: var(--bg) !important;
         color: var(--text-primary) !important;
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
     }}
 
+    /* إجبار لون النصوص حسب الثيم المختار */
     [data-testid="stAppViewContainer"] p,
     [data-testid="stAppViewContainer"] span,
     [data-testid="stAppViewContainer"] label,
@@ -207,9 +209,10 @@ def get_css() -> str:
         color: var(--text-secondary) !important; 
     }}
     
+    /* الشريط الجانبي */
     section[data-testid="stSidebar"] {{ 
         background-color: var(--bg-secondary) !important; 
-        border-right: 1px solid var(--border); 
+        border-right: 1px solid var(--border) !important; 
     }}
     section[data-testid="stSidebar"] * {{ 
         color: var(--text-primary) !important; 
@@ -218,13 +221,13 @@ def get_css() -> str:
         color: var(--text-secondary) !important; 
     }}
     
+    /* الأزرار */
     div[data-testid="stButton"] button {{
         background-color: var(--button-bg) !important; 
         color: var(--text-primary) !important;
         border: 1px solid var(--border) !important; 
         border-radius: 10px !important;
         font-weight: 500 !important; 
-        transition: background-color 0.1s ease, border-color 0.1s ease;
     }}
     div[data-testid="stButton"] button p {{ 
         color: var(--text-primary) !important; 
@@ -237,6 +240,7 @@ def get_css() -> str:
         color: var(--accent) !important; 
     }}
     
+    /* روابط التنقل */
     div[data-testid="stSidebarNav"] li a,
     div[data-testid="stPageLink"] a {{
         background-color: var(--button-bg) !important;
@@ -257,13 +261,15 @@ def get_css() -> str:
         color: var(--text-primary) !important;
     }}
 
+    /* فقاعات المحادثة */
     div[data-testid="stChatMessage"] {{
         max-width: 88%; 
         background-color: var(--assistant-bubble) !important;
-        border: 1px solid var(--border); 
+        border: 1px solid var(--border) !important; 
         border-radius: 14px;
     }}
 
+    /* الفوتر ومربع الإدخال */
     footer, 
     [data-testid="stBottom"], 
     [data-testid="stBottomBlockContainer"],
@@ -278,7 +284,7 @@ def get_css() -> str:
         border-radius: 16px !important;
         max-width: 768px !important;
         margin: 0 auto !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
     }}
     div[data-testid="stChatInput"] textarea {{
         font-size: 15px !important;
@@ -330,20 +336,24 @@ def get_css() -> str:
     """)
 
 
+def render_lang_theme_controls():
+    col1, col2 = st.columns(2)
+    with col1:
+        lang_label = "EN" if st.session_state.lang == "ar" else "AR"
+        if st.button(f"🌐 {lang_label}", use_container_width=True, key="lang_toggle"):
+            st.session_state.lang = "en" if st.session_state.lang == "ar" else "ar"
+            st.rerun()
+    with col2:
+        theme_icon_emoji = "☀️" if st.session_state.theme == "dark" else "🌙"
+        if st.button(theme_icon_emoji, use_container_width=True, key="theme_toggle"):
+            st.session_state.theme = "light" if st.session_state.theme == "dark" else "dark"
+            st.rerun()
+
+
 def inject_css():
     st.markdown(get_css(), unsafe_allow_html=True)
 
 
-def render_sidebar_brand():
-    md_html(f"""
-    <div class="app-brand">
-    {get_logo_svg(36)}
-    <div class="app-brand-text">
-    <div class="app-brand-title">{t('app_title')}</div>
-    <div class="app-brand-subtitle">{t('app_tagline')}</div>
-    </div>
-    </div>
-    """)
 
 
 def render_sidebar_footer():

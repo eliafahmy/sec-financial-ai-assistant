@@ -1,8 +1,8 @@
 """
 streamlit_app.py
 ==================
-الصفحة الرئيسية للتطبيق - واجهة شات بوت لسؤال/إجابة عن التقارير المالية
-الرسمية لآبل ومايكروسوفت، مبنية فوق بايبلاين RAG الكامل (01-07).
+الصفحة الرئيسية - واجهة شات بوت لسؤال/إجابة عن التقارير المالية الرسمية
+لآبل ومايكروسوفت، مبنية فوق بايبلاين RAG الكامل (01-07).
 """
 
 import os
@@ -11,7 +11,7 @@ import streamlit as st
 
 from app_common import (
     init_session_state, inject_css, render_sidebar_brand, render_sidebar_footer,
-    render_lang_theme_controls, t, SUGGESTED_QUESTIONS, start_new_conversation,
+    render_lang_theme_controls, t, icon, SUGGESTED_QUESTIONS, start_new_conversation,
     get_current_history, add_to_current_history,
 )
 import rag_pipeline
@@ -26,9 +26,6 @@ st.set_page_config(
 init_session_state()
 inject_css()
 
-# ---------------------------------------------------------------
-# ربط مفاتيح الـ API من Streamlit secrets وقت النشر
-# ---------------------------------------------------------------
 try:
     prompting_module = rag_pipeline._load_pipeline_modules()[1]
     if not prompting_module.OPENROUTER_API_KEY:
@@ -42,14 +39,31 @@ except Exception:
 
 
 def render_sources(sources: list):
-    with st.expander(f"📎 {t('show_sources')} ({len(sources)})"):
+    with st.expander(f"{t('show_sources')} ({len(sources)})"):
         for i, src in enumerate(sources, 1):
             st.markdown(
-                f"**{i}.** {src['company']} ({src['ticker']}) — {src['form']} · "
-                f"{t('filed_on')}: {src['filing_date']}  \n"
-                f"{t('section')}: {src.get('section', '—')}  \n"
-                f"[{t('source')} ↗]({src['source_url']})"
+                f"""
+                <div class="citation-card">
+                    <div class="cc-top">
+                        <span>{src['ticker']} · {src['form']}</span>
+                        <a href="{src['source_url']}" target="_blank">{t('source')} ↗</a>
+                    </div>
+                    <div>{src['company']} — {t('filed_on')}: {src['filing_date']}</div>
+                    <div style="color:var(--text-secondary);">{t('section')}: {src.get('section', '—')}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
+
+
+def render_answer_meta(model_used: str, n_sources: int):
+    if not model_used:
+        return
+    st.markdown(
+        f"<div class='answer-meta'>{icon('doc', 13)} {t('model_used')}: {model_used} · "
+        f"{n_sources} {t('sources_count')}</div>",
+        unsafe_allow_html=True,
+    )
 
 
 # ---------------------------------------------------------------
@@ -68,7 +82,6 @@ with st.sidebar:
             st.session_state.pending_question = question_text
             st.rerun()
 
-    # قايمة المحادثات السابقة - تقدر ترجع لأي واحدة منها
     other_conversations = [
         (cid, conv) for cid, conv in st.session_state.conversations.items()
         if cid != st.session_state.current_conv_id and conv["history"]
@@ -96,38 +109,44 @@ st.caption(t("app_tagline"))
 history = get_current_history()
 
 if not history:
+    # الحالة الفارغة: نلغي تثبيت صندوق الكتابة في أسفل الصفحة عشان
+    # يظهر أقرب لمنتصف الشاشة (زي ChatGPT/Gemini قبل أول رسالة)
+    st.markdown(
+        """<style>
+        div[data-testid="stChatInput"] {
+            position: relative !important; bottom: auto !important;
+            margin-top: 24px;
+        }
+        </style>""",
+        unsafe_allow_html=True,
+    )
     st.markdown(
         f"""
-        <div style="text-align:center; padding: 50px 20px; color: var(--text-secondary);">
-            <div style="font-size: 40px; margin-bottom: 10px;">📊</div>
+        <div style="text-align:center; padding: 40px 20px 10px 20px; color: var(--text-secondary);">
+            <div style="margin-bottom: 14px;">{icon('chart', 34, 'var(--accent)')}</div>
             <div style="font-size: 17px; font-weight: 600; color: var(--text-primary);">{t('empty_chat_title')}</div>
             <div style="font-size: 14px; margin-top: 6px;">{t('empty_chat_subtitle')}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    typed_question = st.chat_input("Ask about Apple's or Microsoft's financials...")
+else:
+    for entry in history:
+        with st.chat_message("user"):
+            st.markdown(entry["question"])
+        with st.chat_message("assistant"):
+            st.markdown(entry["answer"])
+            if entry.get("sources"):
+                render_sources(entry["sources"])
+            render_answer_meta(entry.get("model_used"), len(entry.get("sources", [])))
 
-for entry in history:
-    with st.chat_message("user"):
-        st.markdown(entry["question"])
-    with st.chat_message("assistant"):
-        st.markdown(entry["answer"])
-        if entry.get("sources"):
-            render_sources(entry["sources"])
-        if entry.get("model_used"):
-            st.markdown(
-                f"<div class='answer-meta'>🔧 {t('model_used')}: {entry['model_used']} · "
-                f"📄 {len(entry.get('sources', []))} {t('sources_count')}</div>",
-                unsafe_allow_html=True,
-            )
+    st.markdown(
+        f"<div class='chat-greeting'>{icon('chat', 15)} {t('greeting')}</div>",
+        unsafe_allow_html=True,
+    )
+    typed_question = st.chat_input("Ask about Apple's or Microsoft's financials...")
 
-# رسالة ترحيب بسيطة فوق صندوق الكتابة - زي Claude/Gemini
-st.markdown(f"<div class='chat-greeting'>💬 {t('greeting')}</div>", unsafe_allow_html=True)
-
-# ---------------------------------------------------------------
-# معالجة سؤال جديد
-# ---------------------------------------------------------------
-typed_question = st.chat_input("Ask about Apple's or Microsoft's financials...")
 question = st.session_state.pending_question or typed_question
 st.session_state.pending_question = None
 
@@ -149,12 +168,7 @@ if question:
         st.markdown(answer)
         if sources:
             render_sources(sources)
-        if model_used:
-            st.markdown(
-                f"<div class='answer-meta'>🔧 {t('model_used')}: {model_used} · "
-                f"📄 {len(sources)} {t('sources_count')}</div>",
-                unsafe_allow_html=True,
-            )
+        render_answer_meta(model_used, len(sources))
 
     add_to_current_history(question, answer, sources, model_used)
     st.rerun()

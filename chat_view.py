@@ -94,14 +94,6 @@ def render_chat_page():
     history = get_current_history()
 
     if not history:
-        md_html("""
-        <style>
-        div[data-testid="stChatInput"] {
-        position: relative !important; bottom: auto !important;
-        margin-top: 24px;
-        }
-        </style>
-        """)
         md_html(f"""
         <div style="text-align:center; padding: 40px 20px 10px 20px; color: var(--text-secondary);">
         <div style="margin-bottom: 14px;">{icon('chart', 34, 'var(--accent)')}</div>

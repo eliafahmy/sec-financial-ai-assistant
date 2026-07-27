@@ -30,8 +30,8 @@ with st.sidebar:
 st.markdown(f"### {t('nav_dashboard')}")
 
 COMPANIES = [
-    {"ticker": "AAPL", "name": "Apple Inc.", "color": "#1D1D1F"},
-    {"ticker": "MSFT", "name": "Microsoft Corporation", "color": "#0078D4"},
+    {"ticker": "AAPL", "name": "Apple Inc.", "color": "#1E293B"},
+    {"ticker": "MSFT", "name": "Microsoft Corporation", "color": "#2563EB"},
 ]
 
 REVENUE_TAGS = ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues"]

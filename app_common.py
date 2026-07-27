@@ -206,23 +206,63 @@ def get_css() -> str:
     div[data-testid="stButton"] button p {{ color: var(--text-primary) !important; }}
     div[data-testid="stButton"] button:hover {{ background-color: var(--button-hover-bg) !important; border-color: var(--accent) !important; }}
     div[data-testid="stButton"] button:hover p {{ color: var(--accent) !important; }}
+    
+    /* إعطاء أزرار القائمة الجانبية (Chat / Dashboard / About) بروازاً ومظهر كارت */
+    div[data-testid="stSidebarNav"] li a,
     div[data-testid="stPageLink"] a {{
-        background-color: transparent !important; border-radius: 8px !important;
-        color: var(--text-primary) !important; font-weight: 500 !important;
+        background-color: var(--button-bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 10px !important;
+        padding: 8px 12px !important;
+        margin-bottom: 6px !important;
+        color: var(--text-primary) !important;
+        font-weight: 500 !important;
+        transition: all 0.15s ease !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
     }}
-    div[data-testid="stPageLink"] a:hover {{ background-color: var(--button-hover-bg) !important; }}
-    div[data-testid="stPageLink"] p {{ color: var(--text-primary) !important; }}
+    div[data-testid="stSidebarNav"] li a:hover,
+    div[data-testid="stPageLink"] a:hover {{
+        background-color: var(--button-hover-bg) !important;
+        border-color: var(--accent) !important;
+    }}
+    div[data-testid="stSidebarNav"] li a span,
+    div[data-testid="stPageLink"] p {{
+        color: var(--text-primary) !important;
+    }}
+
     div[data-testid="stChatMessage"] {{
         max-width: 88%; background-color: var(--assistant-bubble);
         border: 1px solid var(--border); border-radius: 14px;
     }}
-    div[data-testid="stChatInput"] textarea {{
-        font-size: 16px !important; border-radius: 20px !important;
-        color: var(--text-primary) !important; background-color: var(--card-bg) !important;
+
+    /* تغطية الحاوية السفلى بالكامل بنفس لون الخلفية لمنع ظهور الجزء الأبيض */
+    footer, [data-testid="stBottom"], [data-testid="stBottomBlockContainer"] {{
+        background-color: var(--bg) !important;
     }}
-    div[data-testid="stChatInput"] {{ background-color: var(--bg) !important; border-top: 1px solid var(--border); }}
-    div[data-testid="stChatInput"] button {{ background-color: var(--accent) !important; border-radius: 50% !important; }}
-    div[data-testid="stChatInput"] button svg {{ color: white !important; fill: white !important; }}
+
+    /* تنسيق وتوسيط شريط كتابة الشات */
+    div[data-testid="stChatInput"] {{
+        background-color: var(--card-bg) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 24px !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+        max-width: 768px !important;
+        margin: 0 auto !important;
+    }}
+    div[data-testid="stChatInput"] textarea {{
+        font-size: 15px !important;
+        color: var(--text-primary) !important;
+        background-color: transparent !important;
+    }}
+    div[data-testid="stChatInput"] button {{
+        background-color: var(--accent) !important;
+        border-radius: 50% !important;
+    }}
+    div[data-testid="stChatInput"] button svg {{
+        color: #FFFFFF !important;
+        fill: #FFFFFF !important;
+    }}
+
     .app-brand {{ display: flex; align-items: center; gap: 10px; padding: 4px 0 14px 0; border-bottom: 1px solid var(--border); margin-bottom: 10px; }}
     .app-brand-text {{ display: flex; flex-direction: column; line-height: 1.25; }}
     .app-brand-title {{ font-weight: 650; font-size: 15.5px; color: var(--text-primary); }}

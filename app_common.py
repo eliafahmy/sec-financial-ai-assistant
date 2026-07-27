@@ -13,11 +13,6 @@ import streamlit as st
 
 
 def md_html(html: str):
-    """
-    بتعرض HTML بشكل صحيح دايمًا. المشكلة اللي بتحصل عادة: أي سطر HTML
-    فيه مسافات بادئة (Indentation) بيفسّره Markdown كـ "Code Block"
-    بدل ما يعرضه كتصميم فعلي - الدالة دي بتشيل المسافات الزيادة أولًا.
-    """
     st.markdown(textwrap.dedent(html).strip(), unsafe_allow_html=True)
 
 STRINGS = {
@@ -78,9 +73,6 @@ def t(key: str) -> str:
     return STRINGS[lang].get(key, key)
 
 
-# ---------------------------------------------------------------
-# حالة الجلسة - محادثات متعددة
-# ---------------------------------------------------------------
 def _new_conversation_id() -> str:
     return str(uuid.uuid4())
 
@@ -89,7 +81,7 @@ def init_session_state():
     if "lang" not in st.session_state:
         st.session_state.lang = "ar"
     if "theme" not in st.session_state:
-        st.session_state.theme = "light"
+        st.session_state.theme = "dark"
     if "pending_question" not in st.session_state:
         st.session_state.pending_question = None
     if "conversations" not in st.session_state:
@@ -117,9 +109,6 @@ def add_to_current_history(question: str, answer: str, sources: list, model_used
         conv["title"] = question[:42] + ("…" if len(question) > 42 else "")
 
 
-# ---------------------------------------------------------------
-# أيقونات SVG بسيطة (خط رفيع بروح Lucide/Heroicons - بدل الإيموجي)
-# ---------------------------------------------------------------
 def icon(name: str, size: int = 16, color: str = "currentColor") -> str:
     paths = {
         "doc": '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/',
@@ -133,9 +122,6 @@ def icon(name: str, size: int = 16, color: str = "currentColor") -> str:
     )
 
 
-# ---------------------------------------------------------------
-# اللوجو - سطر واحد بلا فراغات داخلية (تفاديًا لأي مشكلة Indentation)
-# ---------------------------------------------------------------
 def get_logo_svg(size: int = 36) -> str:
     return (
         f'<svg width="{size}" height="{size}" viewBox="0 0 40 40" fill="none">'
@@ -148,11 +134,8 @@ def get_logo_svg(size: int = 36) -> str:
     )
 
 
-# ---------------------------------------------------------------
-# التصميم (CSS)
-# ---------------------------------------------------------------
 def get_css() -> str:
-    theme = st.session_state.get("theme", "light")
+    theme = st.session_state.get("theme", "dark")
 
     if theme == "dark":
         bg = "#0F172A"
@@ -188,16 +171,28 @@ def get_css() -> str:
     html, body, [class*="css"] {{
         font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
             "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        background-color: var(--bg) !important;
     }}
-    .stApp {{ background-color: var(--bg); color: var(--text-primary); }}
+    .stApp {{ background-color: var(--bg) !important; color: var(--text-primary); }}
+
+    /* حل مشكلة الهيدر الأبيض العلوي في الصورة */
+    header[data-testid="stHeader"],
+    [data-testid="stHeader"] > div {{
+        background-color: var(--bg) !important;
+        background: var(--bg) !important;
+        color: var(--text-primary) !important;
+    }}
+
     [data-testid="stMarkdownContainer"], [data-testid="stMarkdownContainer"] p,
     [data-testid="stMarkdownContainer"] li, [data-testid="stMarkdownContainer"] span,
     [data-testid="stMarkdownContainer"] strong, [data-testid="stChatMessageContent"] p,
     h1, h2, h3, h4, h5, h6 {{ color: var(--text-primary) !important; }}
     .stCaption, [data-testid="stCaptionContainer"], small {{ color: var(--text-secondary) !important; }}
-    section[data-testid="stSidebar"] {{ background-color: var(--bg-secondary); border-right: 1px solid var(--border); }}
+    
+    section[data-testid="stSidebar"] {{ background-color: var(--bg-secondary) !important; border-right: 1px solid var(--border); }}
     section[data-testid="stSidebar"] * {{ color: var(--text-primary) !important; }}
     section[data-testid="stSidebar"] .stCaption {{ color: var(--text-secondary) !important; }}
+    
     div[data-testid="stButton"] button {{
         background-color: var(--button-bg) !important; color: var(--text-primary) !important;
         border: 1px solid var(--border) !important; border-radius: 10px !important;
@@ -207,7 +202,7 @@ def get_css() -> str:
     div[data-testid="stButton"] button:hover {{ background-color: var(--button-hover-bg) !important; border-color: var(--accent) !important; }}
     div[data-testid="stButton"] button:hover p {{ color: var(--accent) !important; }}
     
-    /* إعطاء أزرار القائمة الجانبية (Chat / Dashboard / About) بروازاً ومظهر كارت */
+    /* أزرار القائمة الجانبية */
     div[data-testid="stSidebarNav"] li a,
     div[data-testid="stPageLink"] a {{
         background-color: var(--button-bg) !important;
@@ -218,7 +213,6 @@ def get_css() -> str:
         color: var(--text-primary) !important;
         font-weight: 500 !important;
         transition: all 0.15s ease !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
     }}
     div[data-testid="stSidebarNav"] li a:hover,
     div[data-testid="stPageLink"] a:hover {{
@@ -235,7 +229,7 @@ def get_css() -> str:
         border: 1px solid var(--border); border-radius: 14px;
     }}
 
-    /* جعل الحاوية السفلى بالكامل بعرض الشاشة تأخذ نفس لون الخلفية بدون أجزاء بيضاء */
+    /* تلوين الحاوية السفلى كاملة بعرض الشاشة */
     footer, 
     [data-testid="stBottom"], 
     [data-testid="stBottomBlockContainer"],
@@ -244,7 +238,6 @@ def get_css() -> str:
         background: var(--bg) !important;
     }}
 
-    /* تنسيق حقل إدخال الشات وتحديد أقصى عرض له في المنتصف */
     div[data-testid="stChatInput"] {{
         background-color: var(--card-bg) !important;
         border: 1px solid var(--border) !important;

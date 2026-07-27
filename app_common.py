@@ -137,34 +137,36 @@ def get_css() -> str:
     theme = st.session_state.get("theme", "dark")
 
     if theme == "dark":
-        bg = "#0F172A"
-        bg_secondary = "#1E293B"
-        text_primary = "#F1F5F9"
-        text_secondary = "#94A3B8"
+        # Dark Theme (Higher Contrast)
+        bg = "#020617"                  # Darker background
+        bg_secondary = "#0F172A"
+        text_primary = "#FFFFFF"        # Pure white
+        text_secondary = "#CBD5E1"
         border = "#334155"
-        card_bg = "#1E293B"
+        card_bg = "#111827"
         input_bg = "#1E293B"
-        input_text = "#F1F5F9"
+        input_text = "#FFFFFF"
         placeholder_text = "#94A3B8"
         button_bg = "#1E293B"
-        button_hover_bg = "#293548"
-        assistant_bubble = "#1E293B"
-        accent = "#3B82F6"
-    else:
-        bg = "#FFFFFF"
-        bg_secondary = "#F8FAFC"
-        text_primary = "#0F172A"
-        text_secondary = "#475569"
-        border = "#E2E8F0"
-        card_bg = "#FFFFFF"
-        input_bg = "#F8FAFC"
-        input_text = "#0F172A"
-        placeholder_text = "#64748B"
-        button_bg = "#FFFFFF"
-        button_hover_bg = "#F1F5F9"
-        assistant_bubble = "#F8FAFC"
+        button_hover_bg = "#334155"
+        assistant_bubble = "#111827"
         accent = "#2563EB"
 
+    else:
+        # Light Theme (Stronger Colors)
+        bg = "#FFFFFF"
+        bg_secondary = "#F3F4F6"
+        text_primary = "#000000"        # Pure black
+        text_secondary = "#1F2937"      # Much darker gray
+        border = "#BFC7D5"
+        card_bg = "#FFFFFF"
+        input_bg = "#FFFFFF"
+        input_text = "#000000"
+        placeholder_text = "#374151"
+        button_bg = "#FFFFFF"
+        button_hover_bg = "#E5E7EB"
+        assistant_bubble = "#F3F4F6"
+        accent = "#1D4ED8"
     return textwrap.dedent(f"""
     <style>
     :root {{
